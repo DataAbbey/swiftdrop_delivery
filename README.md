@@ -55,33 +55,46 @@ For the marketing team working within a tight budget, the **Net New Secured — 
 
 ---
 
-## 📈 Dashboard
+## 📈 Key Insights
+
+<table>
+<tr>
+<td width="50%" valign="top">
 
 ### Weekly Delivery Volume & Net New Acquisition
 ![Weekly Volume](chart1_weekly_volume.png)
 
-First-time delivery customers peaked in early March 2026 before declining steadily. The net new acquisition rate has remained relatively flat at 15–20%, meaning volume decline is reducing absolute net new customer count without improving the share of truly new customers. The program is not getting more efficient over time.
+First-time delivery customers peaked in early March 2026 before declining steadily. The net new acquisition rate has remained relatively flat at 15–20%, meaning volume decline is reducing absolute net new customer count without improving the share of truly new customers.
 
----
+</td>
+<td width="50%" valign="top">
 
 ### Customer Retention & Stickiness Over Time
 ![Stickiness](chart2_stickiness.png)
 
-Return stickiness (2nd order) peaked at 60% in the third week of March and has declined sharply to below 20% in recent weeks. Secured stickiness (3+ orders) has followed the same pattern. This is expected as earlier cohorts have had more time to complete repeat orders — but the declining trend in mature cohorts is a signal worth monitoring.
+Return stickiness (2nd order) peaked at 60% in the third week of March and has declined sharply to below 20% in recent weeks. Secured stickiness (3+ orders) has followed the same pattern.
 
----
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
 ### Incentive Scenario ROI Comparison
 ![ROI Comparison](chart3_roi_comparison.png)
 
-The current flat $20 model has the lowest ROI (7.4x) of all modeled scenarios. Scenarios that gate incentives behind a 2nd or 3rd order dramatically outperform — with the Net New Secured $20 on 3rd order only scenario reaching 31.6x ROI, driven by a very small qualifying customer pool with high post-delivery revenue per customer.
+The current flat $20 model has the lowest ROI (7.4x) of all modeled scenarios. Scenarios that gate incentives behind a 2nd or 3rd order dramatically outperform, with the Net New Secured $20 on 3rd order only scenario reaching 31.6x ROI.
 
----
+</td>
+<td width="50%" valign="top">
 
 ### Incentive Scenario Comparison — Full Detail
 ![Scenario Table](scenario_table.png)
 
-The current model carries the highest total spend ($423,180) and the lowest ROI (7.4x) of any scenario modeled. The recommended Net New Secured — $5+$15 at 3rd order structure cuts spend to $23,070 while still capturing meaningful program reach, and the $20-on-3rd-order-only variant delivers the highest capital efficiency available at 31.6x ROI on just $5,460 in spend.
+The current model carries the highest total spend ($423,180) and the lowest ROI (7.4x) of any scenario modeled. The recommended structures cut spend dramatically while maintaining or improving ROI.
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -137,56 +150,43 @@ The analysis is built on a modular CTE architecture. Each CTE answers one busine
 
 ## 🔬 Analytical Deep Dive
 
-<table>
-<tr>
-<td width="50%" valign="top">
-
 ### 1. Net New Acquisition Is Declining
 
-Since launch, the program's ability to attract genuinely new customers has weakened. The net new acquisition rate opened at 20–25% and has trended down to approximately 15% in recent weeks. With total weekly first-time delivery volume also declining, fewer than 1,000 truly net new customers are being acquired per week.
+Since launch, the program's ability to attract genuinely new customers has weakened. The net new acquisition rate opened at 20–25% and has trended down to approximately 15% in recent weeks. With total weekly first-time delivery volume also declining, fewer than 1,000 truly net new customers are being acquired per week — a significant gap relative to the 21,159 total customers the program has touched.
 
-**Insight:** The current $20 flat incentive is not differentiating between new-to-brand and new-to-delivery customers. Delivery partners have little financial motivation to seek out brand-new customers specifically, because the payout is the same regardless.
+**Insight:** The current $20 flat incentive is not differentiating between new-to-brand and new-to-delivery customers. Delivery partners have little financial motivation to seek out brand-new customers specifically, because the payout is the same regardless. Without a structure that rewards net new acquisition differently, this rate is unlikely to recover.
 
-**Recommendation:** Introduce a net new differentiation gate. Even a modest $5 upfront incentive specifically for net new customers creates a meaningful signal to delivery partners about where to focus acquisition energy.
+**Recommendation:** Introduce a net new differentiation gate. Even a modest $5 upfront incentive specifically for net new customers — versus no upfront incentive for existing customers choosing delivery for the first time — creates a meaningful signal to delivery partners about where to focus acquisition energy.
 
-</td>
-<td width="50%" valign="top">
+---
 
 ### 2. Return Stickiness Is Heavily Cohort-Dependent
 
-The return stickiness rate (customers who place a 2nd delivery order) peaked at 60% in the earliest cohorts and has declined sharply in more recent weeks. Even controlling for cohort age, the absolute return rate of 33% for net new customers is lower than optimal for a program seeking to build delivery habits.
+The return stickiness rate (customers who place a 2nd delivery order) peaked at 60% in the earliest cohorts and has declined sharply in more recent weeks. This is partially a maturity effect — newer cohorts have had less time to return. However, even controlling for cohort age, the absolute return rate of 33% for net new customers is lower than optimal for a program seeking to build delivery habits.
 
-**Insight:** One in three net new customers comes back. That is a reasonable starting point but not a strong enough foundation to justify a flat $20 payout regardless of whether a customer returns.
+**Insight:** One in three net new customers comes back. That is a reasonable starting point but not a strong enough foundation to justify a flat $20 payout regardless of whether a customer returns. The current structure pays the same whether a customer orders once and never returns or becomes a loyal delivery user.
 
-**Recommendation:** Introduce a behavioral gate. Splitting the incentive into acquisition + stickiness (e.g., $5 at first order + $15 at second order) ties the majority of the payout to demonstrated return behavior.
+**Recommendation:** Introduce a behavioral gate. Splitting the incentive into acquisition + stickiness (e.g., $5 at first order + $15 at second order) ties the majority of the payout to demonstrated return behavior, reducing program spend on one-and-done customers while preserving the full incentive for those who stick.
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+---
 
 ### 3. Secured Customers Are the Highest-Value Segment
 
-Only 273 net new customers (7% of the net new pool) have reached a confirmed delivery habit of 3+ orders — but they represent a disproportionate share of post-delivery net sales, generating $148,416 from just 273 customers at a post-delivery ATV of $75–90.
+Only 273 net new customers (7% of the net new pool) have reached a confirmed delivery habit of 3+ orders — but they represent a disproportionate share of post-delivery net sales. The Net New Secured scenario generates $148,416 in post-delivery net sales from just 273 customers — a post-delivery ATV consistently in the $75–90 range across cohorts.
 
-**Insight:** Securing a delivery habit requires more than two touchpoints. Customers who reach a third order have demonstrated true behavioral change — these are the customers worth investing in fully.
+**Insight:** Securing a delivery habit requires more than two touchpoints. Customers who reach a third order have demonstrated true behavioral change — these are the customers worth investing in fully. The 3rd-order gate filters out customers who were trying delivery opportunistically and focuses program spend on those with genuine long-term value.
 
-**Recommendation:** The Net New Secured — $5 + $15 split at 3rd order preserves acquisition incentive while focusing the larger payout on confirmed long-term value, at $23,070 spend and 7.5x ROI.
+**Recommendation:** The Net New Secured — $5 + $15 split at 3rd order preserves acquisition incentive while focusing the larger payout on confirmed long-term value, at a total spend of $23,070 and 7.5x ROI. For teams prioritizing maximum capital efficiency above reach, the Net New Secured — $20 on 3rd order only scenario delivers the highest ROI available at 31.6x with just $5,460 in total program spend.
 
-</td>
-<td width="50%" valign="top">
+---
 
 ### 4. The Current Model Is the Least Efficient
 
-At $423,180 in total program spend and a 7.4x ROI, the current flat $20 model is simultaneously the most expensive and least efficient structure in the analysis. It pays for 21,159 customers regardless of whether they are net new, return, or become habitual.
+At $423,180 in total program spend and a 7.4x ROI, the current flat $20 model is simultaneously the most expensive and least efficient structure in the analysis. It pays for 21,159 customers regardless of whether they are net new, regardless of whether they return, and regardless of whether delivery becomes a habit.
 
-**Insight:** The program's design assumes that all first-time delivery customers are equally valuable. The data shows they are not — net new, returned, and secured customers each represent materially different levels of value.
+**Insight:** The program's design assumes that all first-time delivery customers are equally valuable. The data shows they are not. Net new customers, returned customers, and secured customers each represent materially different levels of value — and the current structure does not distinguish between them.
 
-**Recommendation:** Any restructuring will improve ROI over the current model. The Net New Secured — $5 + $15 at 3rd order structure offers the strongest balance of efficiency and program reach.
-
-</td>
-</tr>
-</table>
+**Recommendation:** Any restructuring — regardless of which scenario is chosen — will improve ROI over the current model. The Net New Secured — $5 + $15 at 3rd order structure offers the strongest balance of efficiency and program reach at $23,070 in spend and 7.5x ROI.
 
 ---
 
