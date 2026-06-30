@@ -2,6 +2,7 @@
 
 **swiftdrop_delivery** — End-to-end analytics case study diagnosing an incentive program's hidden inefficiency and modeling ROI improvements
 
+> *"Start where you are, use what you have, do what you can."*
 
 ---
 
@@ -121,138 +122,71 @@ The analysis relies on two core fact tables and one dimension table:
 
 ## 🔍 SQL Framework
 
-The analysis is built on a modular CTE architecture. Each CTE answers one business question:
+The analysis is built on a modular CTE architecture. Each CTE answers one business question. See the full query in [swiftdrop_analysis.sql](swiftdrop_analysis.sql).
 
-### CTE 1 — `first_delivery_txn`
-Identifies each customer's **first delivery transaction** using QUALIFY + ROW_NUMBER. This anchors the 30-day post-delivery measurement window.
+| CTE | Purpose |
+|---|---|
+| `first_delivery_txn` | Identifies each customer's first delivery transaction using QUALIFY + ROW_NUMBER, anchoring the post-delivery measurement window |
+| `all_first_purchase` | Finds each customer's first transaction of any type (delivery or retail) to determine net new vs existing status |
+| `post_delivery` | Counts delivery transactions that occurred after the first delivery — measures return behavior and revenue |
+| `customer_base` | Assembles the full customer profile with net new, returned, and secured behavioral flags |
 
-```sql
-WITH first_delivery_txn AS (
-    SELECT
-        customer_group_id,
-        transaction_key  AS first_delivery_transaction_key,
-        transaction_date AS first_delivery_txn_date,
-        net_sales        AS first_delivery_txn_net_sales
-    FROM fct_transactions
-    WHERE order_made = 'Other'
-      AND source_name NOT IN (excluded_sources)
-      AND transaction_date > program_launch_date
-    QUALIFY ROW_NUMBER() OVER (
-        PARTITION BY customer_group_id
-        ORDER BY transaction_date, transaction_key
-    ) = 1
-)
-```
-
-### CTE 2 — `all_first_purchase`
-Finds each customer's **first transaction of any type** (delivery or retail). Comparing this to `first_delivery_txn_date` determines whether the customer is net new.
-
-```sql
-, all_first_purchase AS (
-    SELECT
-        customer_group_id,
-        MIN(transaction_date) AS first_retail_txn_date
-    FROM fct_transactions
-    WHERE source_name NOT IN (excluded_sources)
-    GROUP BY customer_group_id
-)
-```
-
-### CTE 3 — `post_delivery`
-Counts all delivery transactions that occurred **after** the customer's first delivery — measuring return behavior.
-
-```sql
-, post_delivery AS (
-    SELECT
-        fdt.customer_group_id,
-        COUNT(DISTINCT dt.transaction_key) AS post_delivery_txns,
-        SUM(dt.net_sales)                  AS post_delivery_net_sales
-    FROM first_delivery_txn AS fdt
-    LEFT JOIN fct_transactions AS dt
-        ON fdt.customer_group_id = dt.customer_group_id
-        AND dt.order_made = 'Other'
-        AND dt.transaction_date > fdt.first_delivery_txn_date
-    GROUP BY 1
-)
-```
-
-### CTE 4 — `customer_base`
-Assembles the full customer profile with all behavioral flags — net new classification, return flag, and secured flag.
-
-```sql
-, customer_base AS (
-    SELECT
-        fdt.customer_group_id,
-        fdt.first_delivery_txn_date,
-        fdt.first_delivery_txn_net_sales,
-        af.first_retail_txn_date,
-        COALESCE(pd.post_delivery_txns, 0)  AS post_delivery_txns,
-        COALESCE(pd.post_delivery_net_sales, 0) AS post_delivery_net_sales,
-
-        CASE
-            WHEN af.first_retail_txn_date = fdt.first_delivery_txn_date
-            THEN 'net_new' ELSE 'existing'
-        END AS customer_type,
-
-        CASE
-            WHEN af.first_retail_txn_date = fdt.first_delivery_txn_date
-                AND COALESCE(pd.post_delivery_txns, 0) > 0
-            THEN 1 ELSE 0
-        END AS is_returned_net_new,
-
-        CASE
-            WHEN af.first_retail_txn_date = fdt.first_delivery_txn_date
-                AND COALESCE(pd.post_delivery_txns, 0) > 3
-            THEN 1 ELSE 0
-        END AS is_secured_net_new
-
-    FROM first_delivery_txn AS fdt
-    LEFT JOIN all_first_purchase AS af ON fdt.customer_group_id = af.customer_group_id
-    LEFT JOIN post_delivery AS pd      ON fdt.customer_group_id = pd.customer_group_id
-)
-```
+**Final output results:** [final_output_results.csv](final_output_results.csv) — the weekly cohort-level output of the full query, readable in any spreadsheet tool
 
 ---
 
-## 🔬 Insight Deep Dive
+## 🔬 Analytical Deep Dive
+
+<table>
+<tr>
+<td width="50%" valign="top">
 
 ### 1. Net New Acquisition Is Declining
 
-Since launch, the program's ability to attract genuinely new customers has weakened. The net new acquisition rate opened at 20–25% and has trended down to approximately 15% in recent weeks. With total weekly first-time delivery volume also declining, fewer than 1,000 truly net new customers are being acquired per week — a significant gap relative to the 21,159 total customers the program has touched.
+Since launch, the program's ability to attract genuinely new customers has weakened. The net new acquisition rate opened at 20–25% and has trended down to approximately 15% in recent weeks. With total weekly first-time delivery volume also declining, fewer than 1,000 truly net new customers are being acquired per week.
 
-**Insight:** The current $20 flat incentive is not differentiating between new-to-brand and new-to-delivery customers. Delivery partners have little financial motivation to seek out brand-new customers specifically, because the payout is the same regardless. Without a structure that rewards net new acquisition differently, this rate is unlikely to recover.
+**Insight:** The current $20 flat incentive is not differentiating between new-to-brand and new-to-delivery customers. Delivery partners have little financial motivation to seek out brand-new customers specifically, because the payout is the same regardless.
 
-**Recommendation:** Introduce a net new differentiation gate. Even a modest $5 upfront incentive specifically for net new customers — versus no upfront incentive for existing customers choosing delivery for the first time — creates a meaningful signal to delivery partners about where to focus acquisition energy.
+**Recommendation:** Introduce a net new differentiation gate. Even a modest $5 upfront incentive specifically for net new customers creates a meaningful signal to delivery partners about where to focus acquisition energy.
 
----
+</td>
+<td width="50%" valign="top">
 
 ### 2. Return Stickiness Is Heavily Cohort-Dependent
 
-The return stickiness rate (customers who place a 2nd delivery order) peaked at 60% in the earliest cohorts and has declined sharply in more recent weeks. This is partially a maturity effect — newer cohorts have had less time to return. However, even controlling for cohort age, the absolute return rate of 33% for net new customers is lower than optimal for a program seeking to build delivery habits.
+The return stickiness rate (customers who place a 2nd delivery order) peaked at 60% in the earliest cohorts and has declined sharply in more recent weeks. Even controlling for cohort age, the absolute return rate of 33% for net new customers is lower than optimal for a program seeking to build delivery habits.
 
-**Insight:** One in three net new customers comes back. That is a reasonable starting point but not a strong enough foundation to justify a flat $20 payout regardless of whether a customer returns. The current structure pays the same whether a customer orders once and never returns or becomes a loyal delivery user.
+**Insight:** One in three net new customers comes back. That is a reasonable starting point but not a strong enough foundation to justify a flat $20 payout regardless of whether a customer returns.
 
-**Recommendation:** Introduce a behavioral gate. Splitting the incentive into acquisition + stickiness (e.g., $5 at first order + $15 at second order) ties the majority of the payout to demonstrated return behavior, reducing program spend on one-and-done customers while preserving the full incentive for those who stick.
+**Recommendation:** Introduce a behavioral gate. Splitting the incentive into acquisition + stickiness (e.g., $5 at first order + $15 at second order) ties the majority of the payout to demonstrated return behavior.
 
----
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
 ### 3. Secured Customers Are the Highest-Value Segment
 
-Only 273 net new customers (7% of the net new pool) have reached a confirmed delivery habit of 3+ orders — but they represent a disproportionate share of post-delivery net sales. The Net New Secured scenario generates $148,416 in post-delivery net sales from just 273 customers — a post-delivery ATV consistently in the $75–90 range across cohorts.
+Only 273 net new customers (7% of the net new pool) have reached a confirmed delivery habit of 3+ orders — but they represent a disproportionate share of post-delivery net sales, generating $148,416 from just 273 customers at a post-delivery ATV of $75–90.
 
-**Insight:** Securing a delivery habit requires more than two touchpoints. Customers who reach a third order have demonstrated true behavioral change — these are the customers worth investing in fully. The 3rd-order gate filters out customers who were trying delivery opportunistically and focuses program spend on those with genuine long-term value.
+**Insight:** Securing a delivery habit requires more than two touchpoints. Customers who reach a third order have demonstrated true behavioral change — these are the customers worth investing in fully.
 
-**Recommendation:** The Net New Secured — $5 + $15 split at 3rd order preserves acquisition incentive while focusing the larger payout on confirmed long-term value, at a total spend of $23,070 and 7.5x ROI. For teams prioritizing maximum capital efficiency above reach, the Net New Secured — $20 on 3rd order only scenario delivers the highest ROI available at 31.6x with just $5,460 in total program spend.
+**Recommendation:** The Net New Secured — $5 + $15 split at 3rd order preserves acquisition incentive while focusing the larger payout on confirmed long-term value, at $23,070 spend and 7.5x ROI.
 
----
+</td>
+<td width="50%" valign="top">
 
 ### 4. The Current Model Is the Least Efficient
 
-At $423,180 in total program spend and a 7.4x ROI, the current flat $20 model is simultaneously the most expensive and least efficient structure in the analysis. It pays for 21,159 customers regardless of whether they are net new, regardless of whether they return, and regardless of whether delivery becomes a habit.
+At $423,180 in total program spend and a 7.4x ROI, the current flat $20 model is simultaneously the most expensive and least efficient structure in the analysis. It pays for 21,159 customers regardless of whether they are net new, return, or become habitual.
 
-**Insight:** The program's design assumes that all first-time delivery customers are equally valuable. The data shows they are not. Net new customers, returned customers, and secured customers each represent materially different levels of value — and the current structure does not distinguish between them.
+**Insight:** The program's design assumes that all first-time delivery customers are equally valuable. The data shows they are not — net new, returned, and secured customers each represent materially different levels of value.
 
-**Recommendation:** Any restructuring — regardless of which scenario is chosen — will improve ROI over the current model. The Net New Secured — $5 + $15 at 3rd order structure offers the strongest balance of efficiency and program reach at $23,070 in spend and 7.5x ROI.
+**Recommendation:** Any restructuring will improve ROI over the current model. The Net New Secured — $5 + $15 at 3rd order structure offers the strongest balance of efficiency and program reach.
+
+</td>
+</tr>
+</table>
 
 ---
 
