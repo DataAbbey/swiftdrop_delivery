@@ -118,16 +118,10 @@ The analysis relies on two core fact tables and one dimension table:
 │ customer_grp_id  │  │ customer_grp_id   │
 │ transaction_date │  │ transaction_date  │
 │ net_sales        │  │ net_sales         │
-│ order_made       │  │ order_made = Other│
+│ order_made       │  │ order_made = Delivery│
 │ source_name      │  │ source_name       │
 └─────────────────┘  └───────────────────┘
 ```
-
-**Key field definitions:**
-- `order_made = 'Other'` → delivery transaction
-- `order_made != 'Other'` → in-store / retail transaction
-- `source_name NOT IN (excluded_sources)` → filters out partner channels not part of the program
-- `customer_type = 'net_new'` → customer whose first-ever transaction was a delivery order (no prior retail history)
 
 ---
 
