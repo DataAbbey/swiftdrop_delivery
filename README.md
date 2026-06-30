@@ -2,7 +2,6 @@
 
 **swiftdrop_delivery** — End-to-end analytics case study diagnosing an incentive program's hidden inefficiency and modeling ROI improvements
 
-> *"Start where you are, use what you have, do what you can."*
 
 ---
 
